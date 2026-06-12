@@ -1,8 +1,6 @@
 import { type UserValidation, UserValidationSchema } from "@app/validation/config/user.ts";
-import { create } from "@bufbuild/protobuf";
 import { DynamicForm, type DynamicFormFormInit } from "@components/Form/DynamicForm.tsx";
 import { useDevice, useNodeDB } from "@core/stores";
-import { Protobuf } from "@meshtastic/core";
 import { useTranslation } from "react-i18next";
 
 interface UserConfigProps {
@@ -10,7 +8,7 @@ interface UserConfigProps {
 }
 
 export const User = ({ onFormInit }: UserConfigProps) => {
-  const { hardware, getChange, connection } = useDevice();
+  const { hardware, getChange, setChange } = useDevice();
   const { getNode } = useNodeDB();
   const { t } = useTranslation("config");
 
@@ -23,16 +21,12 @@ export const User = ({ onFormInit }: UserConfigProps) => {
   };
 
   // Get working copy from change registry
-  const workingUser = getChange({ type: "user" }) as Protobuf.Mesh.User | undefined;
+  const workingUser = getChange({ type: "user" }) as UserValidation | undefined;
 
   const effectiveUser = workingUser ?? defaultUser;
 
   const onSubmit = (data: UserValidation) => {
-    connection?.setOwner(
-      create(Protobuf.Mesh.UserSchema, {
-        ...data,
-      }),
-    );
+    setChange({ type: "user" }, data, defaultUser);
   };
 
   return (

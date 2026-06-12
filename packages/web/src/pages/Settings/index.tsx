@@ -1,5 +1,5 @@
 import { deviceRoute, moduleRoute, radioRoute } from "@app/routes";
-import { toBinary } from "@bufbuild/protobuf";
+import { create, toBinary } from "@bufbuild/protobuf";
 import { PageLayout } from "@components/PageLayout.tsx";
 import { Sidebar } from "@components/Sidebar.tsx";
 import { SidebarButton } from "@components/UI/Sidebar/SidebarButton.tsx";
@@ -39,6 +39,8 @@ const ConfigPage = () => {
     getModuleConfigChangeCount,
     getChannelChangeCount,
     getAdminMessageChangeCount,
+    getChange,
+    hasUserChange,
   } = useDevice();
 
   const [isSaving, setIsSaving] = useState(false);
@@ -181,6 +183,13 @@ const ConfigPage = () => {
         );
       }
 
+      if (hasUserChange()) {
+        const userChange = getChange({ type: "user" }) as Record<string, unknown> | undefined;
+        if (userChange) {
+          await connection?.setOwner(create(Protobuf.Mesh.UserSchema, userChange));
+        }
+      }
+
       channelChanges.forEach((newChannel) => {
         addChannel(newChannel);
       });
@@ -228,6 +237,8 @@ const ConfigPage = () => {
     setConfig,
     setModuleConfig,
     clearAllChanges,
+    getChange,
+    hasUserChange,
   ]);
 
   const handleReset = useCallback(() => {
